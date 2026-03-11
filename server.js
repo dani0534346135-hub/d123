@@ -17,9 +17,13 @@ const client = new Client({
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage'
+            '--disable-dev-shm-usage',
+            '--single-process'
         ],
-        // בגרסה הזו, Puppeteer ינסה למצוא את הנתיב שהוריד לבד
+        // פונקציה שמוצאת את הקובץ בתוך התיקייה בלי קשר למספר הגרסה
+        executablePath: fs.readdirSync('/opt/render/.cache/puppeteer/chrome')
+            .map(dir => path.join('/opt/render/.cache/puppeteer/chrome', dir, 'chrome-linux64/chrome'))
+            .find(p => fs.existsSync(p)) || undefined
     }
 });
 
