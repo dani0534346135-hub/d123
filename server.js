@@ -16,14 +16,10 @@ const client = new Client({
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage', // חשוב מאוד לשרתים עם מעט זיכרון
-            '--disable-accelerated-2d-canvas',
-            '--no-first-run',
-            '--no-zygote',
-            '--single-process' // עוזר לחסוך בזיכרון
+            '--disable-dev-shm-usage'
         ],
-        // ב-Render, נתיב הכרום הוא בדרך כלל כאן:
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable'
+        // הנתיב המדויק שמופיע בלוגים שלך
+        executablePath: '/opt/render/.cache/puppeteer/chrome/linux-146.0.7680.66/chrome-linux64/chrome'
     }
 });
 
