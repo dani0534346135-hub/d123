@@ -1,72 +1,40 @@
 const express = require('express');
 const axios = require('axios');
-const cors = require('cors');
 const path = require('path');
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
-const fs = require('fs');
+const cors = require('cors');
 
 const app = express();
 app.use(cors());
+app.use(express.static('public'));
 
-// --- הגדרות וואטסאפ עם הנתיב המדויק מהלוגים שלך ---
-const client = new Client({
-    authStrategy: new LocalAuth(),
-    puppeteer: {
-        headless: true,
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--single-process'
-        ],
-        // הנתיב המקומי החדש בתוך הפרויקט
-        executablePath: path.join(__dirname, '.cache', 'puppeteer', 'chrome', 'linux-127.0.6533.88', 'chrome-linux64', 'chrome')
-    }
+const MY_CITY = "בת ים";
+
+// נתיב ראשי - מציג את הלוח
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-client.on('qr', (qr) => {
-    console.log('--- סרוק את קוד ה-QR למטה ---');
-    qrcode.generate(qr, { small: true });
-});
-
-client.on('ready', () => {
-    console.log('המערכת מחוברת לוואטסאפ וסורקת התרעות!');
-});
-
-client.initialize();
-
-// --- הגדרות אישיות ---
-const MY_CITY = "בת ים"; 
-const MY_NUMBER = "972501234567@c.us"; // <<< וודא שהמספר שלך כאן תקין
-let lastAlertId = "";
-
-async function sendWhatsappAlert(title, city) {
-    let message = (title.includes("טילים") || title.includes("רקטות")) 
-        ? `🚨 *אזעקת טילים ב${city}!* \nחובה להיכנס למקלט מיד.`
-        : `⚠️ *התרעת שברי טילים ב${city}* \nניתן להישאר בבית, להתרחק מחלונות.`;
-
-    try {
-        await client.sendMessage(MY_NUMBER, message);
-        console.log(`הודעה נשלחה בהצלחה ל-${MY_NUMBER}`);
-    } catch (err) {
-        console.error("שגיאה בשליחת וואטסאפ:", err);
-    }
-}
-
-async function backgroundScanner() {
+// נתיב שבודק אם יש אזעקה כרגע
+app.get('/check-alert', async (req, res) => {
     try {
         const response = await axios.get('https://www.oref.org.il/WarningMessages/History/AlertsHistory.json', {
-            headers: {
-                'Referer': 'https://www.oref.org.il/',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124 Safari/537.36'
-            }
+            headers: { 'Referer': 'https://www.oref.org.il/' }
         });
-
         const data = response.data;
-        if (data && data.length > 0) {
-            const latest = data[0];
-            if (latest.id !== lastAlertId && latest.data.includes(MY_CITY)) {
+        const isAlert = data && data.length > 0 && data[0].data.includes(MY_CITY);
+        
+        res.json({ 
+            alert: isAlert, 
+            location: MY_CITY,
+            info: isAlert ? data[0].title : "" 
+        });
+    } catch (error) {
+        res.json({ alert: false });
+    }
+});
+
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`Dashboard running on port ${PORT}`));            if (latest.id !== lastAlertId && latest.data.includes(MY_CITY)) {
                 lastAlertId = latest.id;
                 await sendWhatsappAlert(latest.title, MY_CITY);
             }
