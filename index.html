@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מגן אישי - התרעות חכמות</title>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #1e3c72; --red: #ff1744; --orange: #ffab00; --green: #00e676; }
+        body { 
+            font-family: 'Assistant', sans-serif; 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            display: flex; align-items: center; justify-content: center; 
+            min-height: 100vh; margin: 0; color: #333;
+        }
+        .app-card { 
+            background: white; padding: 30px; border-radius: 25px; 
+            width: 90%; max-width: 400px; text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        select { 
+            width: 100%; padding: 12px; border-radius: 12px; border: 2px solid #eee;
+            font-size: 1rem; margin: 20px 0; font-family: inherit;
+        }
+        .btn { 
+            background: var(--primary); color: white; border: none; padding: 15px; 
+            width: 100%; border-radius: 15px; font-size: 1.2rem; font-weight: bold; cursor: pointer;
+        }
+        .btn.active { background: var(--green); color: #004d40; }
+        
+        #alert-box { 
+            margin-top: 20px; padding: 20px; border-radius: 15px; display: none;
+            animation: pulse 1.5s infinite; 
+        }
+        @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.03);} 100% {transform: scale(1);} }
+        
+        .instruction { 
+            background: rgba(255,255,255,0.8); padding: 10px; border-radius: 10px;
+            margin-top: 10px; font-size: 0.9rem; color: #000;
+        }
+    </style>
+</head>
+<body onload="loadAllCities()">
+
+<div class="app-card">
+    <h1 style="color: var(--primary); margin: 0;">🛡️ מגן אישי</h1>
+    <p id="loadingText">טוען יישובים מפיקוד העורף...</p>
+    
+    <select id="cityList"><option value="">בחר יישוב...</option></select>
+
+    <button id="startBtn" class="btn" onclick="initApp()">הפעל הגנה בזמן אמת</button>
+
+    <div id="alert-box"></div>
+    <div id="status" style="font-size: 0.7rem; color: #999; margin-top: 15px;"></div>
+</div>
+
+<audio id="sndMissile" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
+<audio id="sndShrapnel" src="https://www.soundjay.com/buttons/beep-07.mp3"></audio>
+
+<script>
+    // --- שנה כאן לכתובת השרת שלך ב-RENDER ---
+    const BASE_URL = 'https://your-app-name.onrender.com'; 
+
+    async function loadAllCities() {
+        try {
+            const res = await fetch(`${BASE_URL}/cities`);
+            const cities = await res.json();
+            const select = document.getElementById('cityList');
+            cities.sort().forEach(c => {
+                const o = document.createElement('option');
+                o.value = o.innerText = c;
+                select.appendChild(o);
+            });
+            document.getElementById('loadingText').innerText = "בחר יישוב למעקב:";
+        } catch (e) { document.getElementById('loadingText').innerText = "שגיאה בחיבור לשרת"; }
+    }
+
+    function initApp() {
+        const city = document.getElementById('cityList').value;
+        if(!city) return alert("אנא בחר עיר");
+        
+        document.getElementById('startBtn').innerText = "מגן פעיל: " + city;
+        document.getElementById('startBtn').classList.add('active');
+        
+        // התחלת סריקה
+        setInterval(() => scan(city), 3000);
+    }
+
+    async function scan(city) {
+        try {
+            const res = await fetch(`${BASE_URL}/alerts`);
+            const data = await res.json();
+            document.getElementById('status').innerText = "סריקה אחרונה: " + new Date().toLocaleTimeString();
+            
+            if(data.length > 0 && data[0].data.includes(city)) {
+                showAlert(data[0], city);
+            }
+        } catch (e) { console.log("סורק..."); }
+    }
+
+    function showAlert(alert, city) {
+        const box = document.getElementById('alert-box');
+        box.style.display = 'block';
+        const title = alert.title;
+
+        if (title.includes("טילים") || title.includes("רקטות")) {
+            box.style.background = "var(--red)"; box.style.color = "white";
+            box.innerHTML = `<b>🚨 אזעקת טילים ב${city}</b><br>חובה להיכנס למקלט/ממ"ד!<div class="instruction">להישאר במרחב מוגן 10 דקות.</div>`;
+            document.getElementById('sndMissile').play();
+        } else {
+            box.style.background = "var(--orange)"; box.style.color = "black";
+            box.innerHTML = `<b>⚠️ התרעת שברים ב${city}</b><br>ניתן להישאר בבית.<div class="instruction">היכנסו לחדר פנימי והתרחקו מחלונות.</div>`;
+            document.getElementById('sndShrapnel').play();
+        }
+    }
+</script>
+</body>
+</html>
