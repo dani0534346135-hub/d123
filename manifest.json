@@ -1,0 +1,15 @@
+{
+  "name": "RedAlert OS Ultimate",
+  "short_name": "RedAlert",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#ff3b30",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/559/559332.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
