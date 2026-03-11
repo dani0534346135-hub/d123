@@ -1,20 +1,7 @@
 {
-  "name": "rocket-alert-proxy",
-  "version": "1.0.0",
-  "description": "Red Alert system with WhatsApp and Web UI",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
   "dependencies": {
     "axios": "^1.6.0",
-    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "whatsapp-web.js": "^1.26.0",
-    "qrcode-terminal": "^0.12.0",
-    "puppeteer": "^22.6.0"
-  },
-  "engines": {
-    "node": ">=16.0.0"
+    "cors": "^2.8.5"
   }
 }
